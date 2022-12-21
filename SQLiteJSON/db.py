@@ -11,6 +11,13 @@ class SQLiteJSON:
         if create_table:
             self.create_table()
 
+    def close(self):
+        self.connector.close()
+
+    def size(self):
+        sql = f"select count(id) from {self.TABLE}"
+        return self.connector.execute(sql).fetchone()[0]
+
     def create_table(self):
         CREATE_TABLE = f"""
         CREATE TABLE IF NOT EXISTS [{self.TABLE}] (
@@ -47,9 +54,10 @@ class SQLiteJSON:
         cur.close()
         return col + data
 
-    def size(self):
-        sql = f"select count(id) from {self.TABLE}"
-        return self.connector.execute(sql).fetchone()[0]
+    @classmethod
+    def from_jsonl(cls, file):
+        pass
 
-    def close(self):
-        self.connector.close()
+    @classmethod
+    def from_csv(cls, file):
+        pass

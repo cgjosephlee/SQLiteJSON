@@ -9,6 +9,7 @@ setup(
     description="Use SQLite as a simple local NoSQL database to store json documents.",
     packages=find_packages(),
     install_requires=[
-        "sqlite>=3.38"
+        "sqlite>=3.38",
+        "tqdm"
         ],
 )
