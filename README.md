@@ -4,6 +4,10 @@ Use SQLite as a simple local NoSQL database to store json documents.
 # Example
 - [SQLite JSON functions](https://www.sqlite.org/json1.html)
 - [Demo notebook](https://github.com/cgjosephlee/SQLiteJSON/blob/main/tests/demo.ipynb)
+```shell
+# Installation
+pip install git+https://github.com/cgjosephlee/SQLiteJSON
+```
 ```python
 import json
 from SQLiteJSON import SQLiteJSON
