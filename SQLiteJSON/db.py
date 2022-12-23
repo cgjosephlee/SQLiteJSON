@@ -54,12 +54,20 @@ class SQLiteJSON:
         cur.close()
         pbar.close()
 
-    def query(self, sql):
+    def query(self, sql, header=True):
+        """
+        Args:
+            sql: sql query.
+            header: include column name.
+        """
         cur = self.connector.execute(sql)
         col = [tuple(x[0] for x in cur.description)]
         data = cur.fetchall()
         cur.close()
-        return col + data
+        if header:
+            return col + data
+        else:
+            return data
 
     def size(self):
         sql = f"select count(id) from {self.TABLE}"
