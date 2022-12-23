@@ -1,5 +1,8 @@
 import sqlite3
-import json
+try:
+    import ujson as json
+except ImportError:
+    import json
 import random
 from tqdm.auto import tqdm
 from typing import Any
