@@ -1,5 +1,5 @@
 # SQLiteJSON
-Use SQLite as a simple local NoSQL database to store json documents.
+Use SQLite as a lightweight NoSQL database to store json documents.
 
 # Example
 - [SQLite JSON functions](https://www.sqlite.org/json1.html)
@@ -31,7 +31,7 @@ db.query("""select k.value, count(k.value) from docs, json_each(body->>'$.type')
 db.query("""select body from docs, json_each(body->>'$.type') k where k.value = 'Ice'""")
 
 # same as above but with extented function
-db.query("""select body from docs where json_array_contains(body->>'type', 'Ice')""")
+db.query("""select body from docs where json_array_contains(body->>'$.type', 'Ice')""")
 ```
 
 # Extended functions

@@ -15,9 +15,9 @@ class SQLiteJSON:
         Use SQLite as a lightweight NoSQL database.
 
         Args:
-            dbName: database path.
+            dbName: database path, or ":memory:".
             TABLE: table name.
-            BODY: column name.
+            BODY: column name for json documents.
             create_table: create table if not existed.
             enable_ext: enable extended functions.
         """
@@ -76,8 +76,10 @@ class SQLiteJSON:
         cur.close()
         pbar.close()
 
-    def query(self, sql, header=True):
+    def query(self, sql: str, header: bool=True):
         """
+        Query db.
+
         Args:
             sql: sql query.
             header: include column name.
@@ -91,6 +93,7 @@ class SQLiteJSON:
         else:
             return data
 
+    @property
     def size(self):
         sql = f"select count(id) from {self.TABLE}"
         return self.connector.execute(sql).fetchone()[0]

@@ -6,7 +6,7 @@ setup(
     url="https://github.com/cgjosephlee/SQLiteJSON",
     author="Joseph Lee",
     author_email="cgjosephlee@gmail.com",
-    description="Use SQLite as a simple local NoSQL database to store json documents.",
+    description="Use SQLite as a lightweight NoSQL database to store json documents.",
     packages=find_packages(),
     install_requires=[
         # "sqlite>=3.38",
