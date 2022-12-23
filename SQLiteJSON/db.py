@@ -5,7 +5,9 @@ except ImportError:
     import json
 import random
 from tqdm.auto import tqdm
-from typing import Any
+from typing import Any, Iterable
+from functools import partial
+from itertools import islice
 
 class SQLiteJSON:
     def __init__(self, dbName: str, TABLE: str="docs", BODY: str="body", create_table: bool=True, enable_ext: bool=True):
@@ -38,19 +40,36 @@ class SQLiteJSON:
         self.connector.execute(CREATE_TABLE)
         self.connector.commit()
 
-    def _one_tuple_gen(self, data):
+    @staticmethod
+    def _chunked(iterable: Iterable, n: int) -> list:
+        # adopted from `more_itertools.chunked`
+        return iter(partial(lambda N, IT: list(islice(IT, N)), n, iter(iterable)), [])
+
+    @staticmethod
+    def _one_tuple_gen(data):
         for d in data:
-            if type(d) == dict:
+            if type(d) == dict or type(d) == list:
                 yield (json.dumps(d, ensure_ascii=False),)
             else:
                 yield (d,)
 
-    def write_json(self, items: list, batch=1000, disable_progress=False):
+    def write_json(self, items: Iterable, batch: int=1000, disable_progress: bool=False):
+        """
+        Write documents to db in batches.
+
+        Args:
+            items: iterable of documents
+            batch: batch size
+            disable_progress
+        """
         INSERT_RECORD = f"""INSERT INTO [{self.TABLE}] ({self.BODY}) VALUES (?);"""
         cur = self.connector.cursor()
-        pbar = tqdm(total=len(items), disable=disable_progress)
-        for i in range(0, len(items), batch):
-            data = items[i:i+batch]
+        try:
+            tot = len(items)
+        except:
+            tot = None
+        pbar = tqdm(total=tot, disable=disable_progress)
+        for data in self._chunked(items, batch):
             cur.executemany(INSERT_RECORD, self._one_tuple_gen(data))
             self.connector.commit()
             pbar.update(len(data))
