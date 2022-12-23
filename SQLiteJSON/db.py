@@ -1,15 +1,29 @@
 import sqlite3
 import json
+import random
 from tqdm.auto import tqdm
+from typing import Any
 
 class SQLiteJSON:
-    def __init__(self, dbName: str, TABLE="docs", BODY="body", create_table=True):
+    def __init__(self, dbName: str, TABLE: str="docs", BODY: str="body", create_table: bool=True, enable_ext: bool=True):
+        """
+        Use SQLite as a lightweight NoSQL database.
+
+        Args:
+            dbName: database path.
+            TABLE: table name.
+            BODY: column name.
+            create_table: create table if not existed.
+            enable_ext: enable extended functions.
+        """
         assert sqlite3.sqlite_version_info >= (3,38), "require sqlite >= 3.38"
         self.connector = sqlite3.connect(dbName)
         self.TABLE = TABLE
         self.BODY = BODY
         if create_table:
             self.create_table()
+        if enable_ext:
+            _SQLiteJSONExt.register(self.connector)
 
     def create_table(self):
         CREATE_TABLE = f"""
@@ -53,3 +67,35 @@ class SQLiteJSON:
 
     def close(self):
         self.connector.close()
+
+
+class _SQLiteJSONExt:
+    @staticmethod
+    def _registered_funcs():
+        # [name, num_params]
+        f = [
+            ["json_array_contains", 2],
+            ["json_array_dropdup", 1],
+            ["json_array_randelem", 1]
+        ]
+        return f
+
+    @classmethod
+    def register(cls, conn):
+        funcs = cls._registered_funcs()
+        for name, num_params in funcs:
+            conn.create_function(name, num_params, getattr(cls, name))
+
+    @staticmethod
+    def json_array_contains(arr: str, value: Any) -> bool:
+        return value in json.loads(arr)
+
+    @staticmethod
+    def json_array_dropdup(arr: str) -> str:
+        # Order not preserved
+        return json.dumps(list(set(json.loads(arr))))
+
+    @staticmethod
+    def json_array_randelem(arr: str) -> Any:
+        a = json.loads(arr)
+        return a[random.randrange(len(a))]
