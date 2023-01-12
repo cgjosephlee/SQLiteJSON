@@ -9,6 +9,20 @@ from typing import Any, Iterable
 from functools import partial
 from itertools import islice
 
+
+def _chunked(iterable: Iterable, n: int) -> Iterable[list]:
+    # adopted from `more_itertools.chunked`
+    return iter(partial(lambda N, IT: list(islice(IT, N)), n, iter(iterable)), [])
+
+
+def _one_tuple_gen(data):
+    for d in data:
+        if type(d) == dict or type(d) == list:
+            yield (json.dumps(d, ensure_ascii=False),)
+        else:
+            yield (d,)
+
+
 class SQLiteJSON:
     def __init__(self, dbName: str, TABLE: str="docs", BODY: str="body", create_table: bool=True, enable_ext: bool=True):
         """
@@ -40,19 +54,6 @@ class SQLiteJSON:
         self.connector.execute(CREATE_TABLE)
         self.connector.commit()
 
-    @staticmethod
-    def _chunked(iterable: Iterable, n: int) -> list:
-        # adopted from `more_itertools.chunked`
-        return iter(partial(lambda N, IT: list(islice(IT, N)), n, iter(iterable)), [])
-
-    @staticmethod
-    def _one_tuple_gen(data):
-        for d in data:
-            if type(d) == dict or type(d) == list:
-                yield (json.dumps(d, ensure_ascii=False),)
-            else:
-                yield (d,)
-
     def write_json(self, items: Iterable, batch: int=1000, disable_progress: bool=False):
         """
         Write documents to db in batches.
@@ -69,8 +70,8 @@ class SQLiteJSON:
         except:
             tot = None
         pbar = tqdm(total=tot, disable=disable_progress)
-        for data in self._chunked(items, batch):
-            cur.executemany(INSERT_RECORD, self._one_tuple_gen(data))
+        for data in _chunked(items, batch):
+            cur.executemany(INSERT_RECORD, _one_tuple_gen(data))
             self.connector.commit()
             pbar.update(len(data))
         cur.close()
