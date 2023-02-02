@@ -94,9 +94,20 @@ class SQLiteJSON:
         else:
             return data
 
+    def __iter__(self):
+        """
+        Iterate all documents.
+        """
+        sql = f"select {self.BODY} from {self.TABLE}"
+        cur = self.connector.execute(sql)
+        for row in cur:
+            yield row[0]
+        cur.close()
+
     @property
     def size(self):
-        sql = f"select count(id) from {self.TABLE}"
+        # count(id) is accurate but much slower
+        sql = f"select max(id) from {self.TABLE}"
         return self.connector.execute(sql).fetchone()[0]
 
     def close(self):
